@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+echo "master"
+echo "latest" 
+# You can add more versions or fetch from GitHub API if needed

@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$ASDF_DOWNLOAD_PATH"
+
+# Check for zig
+if ! command -v zig &> /dev/null; then
+  echo "Error: zig is required to build zls"
+  exit 1
+fi
+
+echo "Building ZLS $ASDF_INSTALL_VERSION with zig..."
+zig build -Doptimize=ReleaseSafe
+
+mkdir -p "$ASDF_INSTALL_PATH/bin"
+install -Dm755 zig-out/bin/zls "$ASDF_INSTALL_PATH/bin/zls"
+
+echo "ZLS $ASDF_INSTALL_VERSION installed successfully to $ASDF_INSTALL_PATH/bin/zls"
