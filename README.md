@@ -1,6 +1,6 @@
 # mise-zls
 
-[![GitHub License](https://img.shields.io/github/license/jabbslad/mise-zls)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Issues](https://img.shields.io/github/issues/jabbslad/mise-zls)](https://github.com/jabbslad/mise-zls/issues)
 
 [ZLS](https://github.com/zigtools/zls) (Zig Language Server) plugin for [mise](https://mise.jdx.dev) (formerly rtx).
@@ -122,7 +122,9 @@ See the [ZLS documentation](https://github.com/zigtools/zls#editor-support) for 
 The plugin provides the following commands:
 
 ### `list-all`
+
 Lists all available ZLS versions from GitHub, including:
+
 - Official release versions
 - Git tags
 - Recent commit SHAs from master branch (5 most recent)
@@ -130,14 +132,18 @@ Lists all available ZLS versions from GitHub, including:
 - `master` (latest development version)
 
 ### `download`
+
 Downloads the specified ZLS version from GitHub:
+
 - Validates version exists before downloading
 - Supports git tags, branches, and full 40-character commit SHAs
 - Includes retry logic for network failures
 - Shows download progress and commit information
 
 ### `install`
+
 Builds and installs ZLS from source:
+
 - Checks Zig compatibility
 - Shows build progress
 - Verifies successful installation
@@ -224,6 +230,7 @@ This plugin:
 4. **Installs** - Places the compiled binary in the mise installation directory
 
 When installing from a git commit SHA:
+
 - The full 40-character SHA must be provided
 - The plugin validates the commit exists via GitHub API
 - The entire repository is cloned (not shallow) to access the specific commit
@@ -411,3 +418,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [mise-zig](https://github.com/mise-plugins/mise-zig) - Zig plugin for mise
 - [zigtools/zls](https://github.com/zigtools/zls) - The Zig Language Server
 - [ziglang/zig](https://github.com/ziglang/zig) - The Zig programming language
+
