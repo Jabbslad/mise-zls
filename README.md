@@ -1,6 +1,8 @@
 # mise-zls
 
 [![GitHub License](https://img.shields.io/github/license/jabbslad/mise-zls)](LICENSE)
+
+[![GitHub License](https://img.shields.io/github/license/jabbslad/mise-zls)](LICENSE)
 [![GitHub Issues](https://img.shields.io/github/issues/jabbslad/mise-zls)](https://github.com/jabbslad/mise-zls/issues)
 
 [ZLS](https://github.com/zigtools/zls) (Zig Language Server) plugin for [mise](https://mise.jdx.dev) (formerly rtx).
