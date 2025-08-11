@@ -1,5 +1,72 @@
 #!/usr/bin/env bash
 set -euo pipefail
-echo "master"
-echo "latest" 
-# You can add more versions or fetch from GitHub API if needed
+
+# Function to sort versions
+sort_versions() {
+  sed 's/^/v/' | sort -V | sed 's/^v//'
+}
+
+# Function to fetch GitHub releases
+fetch_github_releases() {
+  local api_url="https://api.github.com/repos/zigtools/zls/releases?per_page=100"
+  local releases=""
+  
+  # Try to fetch releases from GitHub API
+  if command -v curl &> /dev/null; then
+    releases=$(curl -s -f "$api_url" 2>/dev/null || echo "")
+  elif command -v wget &> /dev/null; then
+    releases=$(wget -qO- "$api_url" 2>/dev/null || echo "")
+  fi
+  
+  if [ -n "$releases" ] && [ "$releases" != "[]" ]; then
+    echo "$releases" | grep -o '"tag_name": *"[^"]*"' | sed 's/"tag_name": *"\([^"]*\)"/\1/' | sort_versions
+  fi
+}
+
+# Function to fetch GitHub tags
+fetch_github_tags() {
+  local api_url="https://api.github.com/repos/zigtools/zls/tags?per_page=100"
+  local tags=""
+  
+  # Try to fetch tags from GitHub API
+  if command -v curl &> /dev/null; then
+    tags=$(curl -s -f "$api_url" 2>/dev/null || echo "")
+  elif command -v wget &> /dev/null; then
+    tags=$(wget -qO- "$api_url" 2>/dev/null || echo "")
+  fi
+  
+  if [ -n "$tags" ] && [ "$tags" != "[]" ]; then
+    echo "$tags" | grep -o '"name": *"[^"]*"' | sed 's/"name": *"\([^"]*\)"/\1/' | sort_versions
+  fi
+}
+
+# Main logic
+main() {
+  local versions=""
+  
+  # Try to fetch releases first
+  versions=$(fetch_github_releases)
+  
+  # If no releases found, try tags
+  if [ -z "$versions" ]; then
+    versions=$(fetch_github_tags)
+  fi
+  
+  # If we got versions from GitHub, display them
+  if [ -n "$versions" ]; then
+    echo "$versions"
+  else
+    # Fallback to known versions if GitHub API fails
+    echo "0.13.0"
+    echo "0.12.0"
+    echo "0.11.0"
+    echo "0.10.0"
+    echo "0.9.0"
+  fi
+  
+  # Always include master and latest options
+  echo "master"
+  echo "latest"
+}
+
+main
