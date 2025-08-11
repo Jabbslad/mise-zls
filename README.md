@@ -23,6 +23,7 @@
 - **Automatic version discovery** - Fetches available ZLS versions from GitHub
 - **Build from source** - Compiles ZLS optimized for your system
 - **Version validation** - Verifies versions exist before download
+- **Git commit SHA support** - Install specific commits for testing or debugging
 - **Retry logic** - Handles network failures gracefully
 - **Progress reporting** - Shows build and installation progress
 - **Colored output** - Clear, user-friendly terminal output
@@ -61,6 +62,9 @@ mise install zls@latest
 
 # Install a specific version/tag
 mise install zls@0.13.0
+
+# Install from a specific git commit SHA
+mise install zls@1a9a623d7d82d23c7d82d23c7d82d23c7d82d23c
 
 # Set as global default
 mise global zls@latest
@@ -121,12 +125,14 @@ The plugin provides the following commands:
 Lists all available ZLS versions from GitHub, including:
 - Official release versions
 - Git tags
+- Recent commit SHAs from master branch (5 most recent)
 - `latest` (master branch)
 - `master` (latest development version)
 
 ### `download`
 Downloads the specified ZLS version from GitHub:
 - Validates version exists before downloading
+- Supports git tags, branches, and full 40-character commit SHAs
 - Includes retry logic for network failures
 - Shows download progress and commit information
 
@@ -143,7 +149,9 @@ Builds and installs ZLS from source:
 
 - `latest` or `master` - Builds from the latest master branch
 - Any valid git tag/branch from the [ZLS repository](https://github.com/zigtools/zls/tags)
+- Any 40-character git commit SHA from the ZLS repository
 - Example versions: `0.13.0`, `0.12.0`, `0.11.0`
+- Example commit SHA: `1a9a623d7d82d23c7d82d23c7d82d23c7d82d23c`
 
 ### Environment Variables
 
@@ -210,10 +218,16 @@ mise global --remove zls
 
 This plugin:
 
-1. **Lists versions** - Queries GitHub API for available releases and tags
-2. **Downloads** - Clones the ZLS repository at the specified version
+1. **Lists versions** - Queries GitHub API for available releases, tags, and recent commit SHAs
+2. **Downloads** - Clones the ZLS repository at the specified version, tag, or commit SHA
 3. **Builds** - Compiles ZLS from source using `zig build -Doptimize=ReleaseSafe`
 4. **Installs** - Places the compiled binary in the mise installation directory
+
+When installing from a git commit SHA:
+- The full 40-character SHA must be provided
+- The plugin validates the commit exists via GitHub API
+- The entire repository is cloned (not shallow) to access the specific commit
+- The commit is then checked out for building
 
 ## Troubleshooting
 
@@ -325,6 +339,22 @@ mise install  # Installs versions from .mise.toml
 # Project B uses Zig/ZLS 0.12.0
 cd ~/project-b
 mise install  # Automatically switches to 0.12.0
+```
+
+### Testing a specific commit
+
+```bash
+# Install ZLS from a specific commit for testing
+mise install zls@abc123def456789012345678901234567890abcd
+
+# Use it temporarily in your project
+mise local zls@abc123def456789012345678901234567890abcd
+
+# Test your code with this specific version
+zls --version
+
+# Switch back to stable version when done
+mise local zls@0.13.0
 ```
 
 ### Using with CI/CD

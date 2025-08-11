@@ -29,6 +29,21 @@ validate_version() {
     return 0
   fi
   
+  # Check if it's a valid git SHA (40 characters hex)
+  if [[ "$version" =~ ^[0-9a-f]{40}$ ]]; then
+    # Validate the commit exists
+    local commit_check=""
+    if command -v curl &> /dev/null; then
+      commit_check=$(curl -s -o /dev/null -w "%{http_code}" "https://api.github.com/repos/zigtools/zls/commits/$version")
+    elif command -v wget &> /dev/null; then
+      commit_check=$(wget -q --spider -S "https://api.github.com/repos/zigtools/zls/commits/$version" 2>&1 | grep "HTTP/" | awk '{print $2}' | tail -1)
+    fi
+    
+    if [ "$commit_check" = "200" ]; then
+      return 0
+    fi
+  fi
+  
   # Check if version exists as a tag
   local tag_check=""
   if command -v curl &> /dev/null; then
@@ -48,15 +63,26 @@ validate_version() {
 clone_with_retry() {
   local url="$1"
   local dest="$2"
-  local branch_opt="$3"
+  local ref="$3"
+  local is_sha="$4"
   local max_retries=3
   local retry_count=0
   
   while [ $retry_count -lt $max_retries ]; do
     print_info "Attempting to download ZLS (attempt $((retry_count + 1))/$max_retries)..."
     
-    if [ -n "$branch_opt" ]; then
-      if git clone --depth=1 --branch "$branch_opt" "$url" "$dest" 2>/dev/null; then
+    if [ "$is_sha" = "true" ]; then
+      # For commit SHAs, we need to clone the full repo then checkout
+      if git clone "$url" "$dest" 2>/dev/null; then
+        cd "$dest"
+        if git checkout "$ref" 2>/dev/null; then
+          cd - > /dev/null
+          return 0
+        fi
+        cd - > /dev/null
+      fi
+    elif [ -n "$ref" ]; then
+      if git clone --depth=1 --branch "$ref" "$url" "$dest" 2>/dev/null; then
         return 0
       fi
     else
@@ -97,6 +123,13 @@ main() {
   # Create download directory
   mkdir -p "$download_path"
   
+  # Check if version is a git SHA
+  local is_sha="false"
+  if [[ "$version" =~ ^[0-9a-f]{40}$ ]]; then
+    is_sha="true"
+    print_info "Detected git commit SHA: $version"
+  fi
+  
   # Validate version if not master/latest
   if [ "$version" != "master" ] && [ "$version" != "latest" ]; then
     print_info "Validating version $version exists..."
@@ -110,15 +143,23 @@ main() {
   # Download the repository
   if [ "$version" = "master" ] || [ "$version" = "latest" ]; then
     print_info "Downloading ZLS from master branch..."
-    if clone_with_retry "https://github.com/zigtools/zls" "$download_path" ""; then
+    if clone_with_retry "https://github.com/zigtools/zls" "$download_path" "" "false"; then
       print_success "Successfully downloaded ZLS (master)"
     else
       print_error "Failed to download ZLS after multiple attempts"
       exit 1
     fi
+  elif [ "$is_sha" = "true" ]; then
+    print_info "Downloading ZLS at commit $version..."
+    if clone_with_retry "https://github.com/zigtools/zls" "$download_path" "$version" "true"; then
+      print_success "Successfully downloaded ZLS at commit $version"
+    else
+      print_error "Failed to download ZLS at commit $version"
+      exit 1
+    fi
   else
     print_info "Downloading ZLS version $version..."
-    if clone_with_retry "https://github.com/zigtools/zls" "$download_path" "$version"; then
+    if clone_with_retry "https://github.com/zigtools/zls" "$download_path" "$version" "false"; then
       print_success "Successfully downloaded ZLS version $version"
     else
       print_error "Failed to download ZLS version $version"

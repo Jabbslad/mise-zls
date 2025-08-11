@@ -67,6 +67,29 @@ main() {
   # Always include master and latest options
   echo "master"
   echo "latest"
+  
+  # Include some recent commit SHAs from master branch
+  fetch_recent_commits
+}
+
+# Function to fetch recent commit SHAs from master branch
+fetch_recent_commits() {
+  local api_url="https://api.github.com/repos/zigtools/zls/commits?per_page=5"
+  local commits=""
+  
+  # Try to fetch recent commits from GitHub API
+  if command -v curl &> /dev/null; then
+    commits=$(curl -s -f "$api_url" 2>/dev/null || echo "")
+  elif command -v wget &> /dev/null; then
+    commits=$(wget -qO- "$api_url" 2>/dev/null || echo "")
+  fi
+  
+  if [ -n "$commits" ] && [ "$commits" != "[]" ]; then
+    # Extract commit SHAs and add comment to indicate they are commits
+    echo "$commits" | grep -o '"sha": *"[^"]*"' | sed 's/"sha": *"\([^"]*\)"/\1/' | head -5 | while read -r sha; do
+      echo "$sha"
+    done
+  fi
 }
 
 main
